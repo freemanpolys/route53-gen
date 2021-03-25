@@ -24,6 +24,7 @@ import (
 
 var Name string
 var Ip string
+var Wildcard bool
 
 type ResourceRecord struct {
 	Value string `json:"Value"`
@@ -68,8 +69,10 @@ func init() {
 	// recordsetsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	recordsetsCmd.PersistentFlags().StringVarP(&Name, "name", "n", "", "Record name (required)")
 	recordsetsCmd.PersistentFlags().StringVarP(&Ip, "ip", "i", "", "Record IP (required)")
+	recordsetsCmd.PersistentFlags().BoolVarP(&Wildcard, "wildcard", "w", false, "Is Record name wirldcard")
 	rootCmd.MarkPersistentFlagRequired("name")
 	rootCmd.MarkPersistentFlagRequired("ip")
+
 }
 
 func createRecord(args []string) {
@@ -79,6 +82,9 @@ func createRecord(args []string) {
 	change[0].Action = "CREATE"
 	change[0].ResourceRecordSet.Type = "A"
 	change[0].ResourceRecordSet.TTL = 300
+	if Wildcard {
+		Name = "*." + Name
+	}
 	change[0].ResourceRecordSet.Name = Name
 
 	// set ip address
