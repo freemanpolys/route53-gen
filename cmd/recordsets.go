@@ -18,7 +18,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/spf13/cobra"
 )
@@ -26,19 +25,22 @@ import (
 var Name string
 var Ip string
 
+type ResourceRecord struct {
+	Value string `json:"Value"`
+}
+
+type Change struct {
+	Action            string `json:"Action"`
+	ResourceRecordSet struct {
+		Name            string           `json:"Name"`
+		Type            string           `json:"Type"`
+		TTL             int              `json:"TTL"`
+		ResourceRecords []ResourceRecord `json:"ResourceRecords"`
+	} `json:"ResourceRecordSet"`
+}
 type Route53Record struct {
-	Comment string `json:"Comment"`
-	Changes []struct {
-		Action            string `json:"Action"`
-		ResourceRecordSet struct {
-			Name            string `json:"Name"`
-			Type            string `json:"Type"`
-			TTL             int    `json:"TTL"`
-			ResourceRecords []struct {
-				Value string `json:"Value"`
-			} `json:"ResourceRecords"`
-		} `json:"ResourceRecordSet"`
-	} `json:"Changes"`
+	Comment string   `json:"Comment"`
+	Changes []Change `json:"Changes"`
 }
 
 // recordsetsCmd represents the recordsets command
@@ -71,17 +73,19 @@ func init() {
 }
 
 func createRecord(args []string) {
-	var record Route53Record
-
-	content, err := ioutil.ReadFile("tmpl/create-record.json")
-
-	if err != nil {
-		fmt.Printf("Error while reading the file %v", content)
-	}
-	_ = json.Unmarshal(content, &record)
+	record := Route53Record{}
 	record.Comment = fmt.Sprintf("Creating %s entry", Name)
-	record.Changes[0].ResourceRecordSet.Name = Name
-	record.Changes[0].ResourceRecordSet.ResourceRecords[0].Value = Ip
+	change := make([]Change, 1)
+	change[0].Action = "CREATE"
+	change[0].ResourceRecordSet.Type = "A"
+	change[0].ResourceRecordSet.TTL = 300
+	change[0].ResourceRecordSet.Name = Name
+
+	// set ip address
+	recordsets := make([]ResourceRecord, 1)
+	recordsets[0].Value = Ip
+	change[0].ResourceRecordSet.ResourceRecords = recordsets
+	record.Changes = change
 
 	if res, err := json.Marshal(record); err != nil {
 		fmt.Println(err)
