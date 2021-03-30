@@ -70,8 +70,8 @@ func init() {
 	recordsetsCmd.PersistentFlags().StringVarP(&Name, "name", "n", "", "Record name (required)")
 	recordsetsCmd.PersistentFlags().StringVarP(&Ip, "ip", "i", "", "Record IP (required)")
 	recordsetsCmd.PersistentFlags().BoolVarP(&Wildcard, "wildcard", "w", false, "Is Record name wirldcard")
-	rootCmd.MarkPersistentFlagRequired("name")
-	rootCmd.MarkPersistentFlagRequired("ip")
+	recordsetsCmd.MarkPersistentFlagRequired("name")
+	recordsetsCmd.MarkPersistentFlagRequired("ip")
 
 }
 
